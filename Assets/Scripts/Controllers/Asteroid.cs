@@ -33,8 +33,16 @@ public class Asteroid : MonoBehaviour
         transform.position += Time.deltaTime * velocity;
     }
 
-    public void chooseRandomDirection(){
-        float direction = (int)UnityEngine.Random.Range(0, 360);
+    public void chooseRandomDirection()
+	{ 
+		//a2+b2=c2
+		//a =  destination
+		//b = transform.position
+		//c = maxFloatDistance
+		//destination2 = maxFloatDistance2-transform.position2
+
+
+		float direction = (int)UnityEngine.Random.Range(0, 360);
 
         destination.x = transform.position.x-(maxFloatDistance * MathF.Cos(direction));
         destination.y = transform.position.y-(maxFloatDistance * MathF.Sin(direction));
