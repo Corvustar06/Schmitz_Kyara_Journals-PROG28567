@@ -21,8 +21,8 @@ public class RowGeneration : MonoBehaviour
     void Update()
     {
         if(squaresGenerated){
-            if (int.Parse(squareNumberInput.text) != null)
-            {
+            //if (int.Parse(squareNumberInput.text) != null)
+            //{
 
                 for (int i = 0; i < int.Parse(squareNumberInput.text); i++)
                 {
@@ -31,7 +31,7 @@ public class RowGeneration : MonoBehaviour
                     Debug.DrawLine(new Vector2(firstCorner.x+i+1, firstCorner.y+1), new Vector2(firstCorner.x+i, firstCorner.y+1), Color.red);
                     Debug.DrawLine(new Vector2(firstCorner.x+i, firstCorner.y+1), new Vector2(firstCorner.x+i, firstCorner.y), Color.red);
                 }
-            }
+            //}
         }
     }
 
