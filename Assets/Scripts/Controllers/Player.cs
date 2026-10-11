@@ -9,17 +9,16 @@ public class Player : MonoBehaviour
 {
     public Transform enemyTransform;
     public GameObject bombPrefab;
+    public GameObject powerupPrefab;
     public List<Transform> asteroidTransforms;
 
     public Vector2 testVector;
     int numberOfBombs = 5;
 
     float bombSpacing = 1f;
-    float inDistance;
 
     public Transform warpPosition;
     public float warpRatio;
-    public float maxRange;
 
     public float maxSpeed=3f;
     public float accelerationTime = 1f;
@@ -27,10 +26,12 @@ public class Player : MonoBehaviour
     private float acceleration;
     private Vector3 velocity = Vector3.zero;
 
-    bool decelerate;
 
     public int radPointNum;
     public float radarRadius;
+
+    public float powerupRadius;
+    public int powerupNum;
 
 
     public List<Transform> asteroids;
@@ -60,6 +61,10 @@ public class Player : MonoBehaviour
         
         if(Keyboard.current.wKey.wasPressedThisFrame){
             WarpPlayer(warpPosition, warpRatio);
+        }
+
+        if(Keyboard.current.pKey.wasPressedThisFrame){
+            SpawnPowerups(powerupRadius, powerupNum);
         }
 
         //DetectAsteroids(maxRange, asteroids);
@@ -318,5 +323,21 @@ public class Player : MonoBehaviour
         }
     }
 
+
+    public void SpawnPowerups(float radius, int numberOfPowerups){
+        Vector3[] powerups = new Vector3[numberOfPowerups];
+        float powerupDistance = 360 / numberOfPowerups;
+        float currentAngle = 0;
+        GameObject powerUp;
+
+		for (int i = 0; i < powerups.Length; i++)
+		{
+			currentAngle += powerupDistance;
+			powerups[i] = new Vector3(transform.position.x + (radius * Mathf.Sin(currentAngle * Mathf.Deg2Rad)), transform.position.y + (radius * Mathf.Cos(currentAngle * Mathf.Deg2Rad)), 0);
+            powerUp = Instantiate(powerupPrefab, powerups[i], transform.rotation);
+		}
+
+
+	}
 
 }
