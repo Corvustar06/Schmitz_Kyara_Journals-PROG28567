@@ -6,7 +6,6 @@ public class Enemy : MonoBehaviour
     public Transform player;
     public Vector3 velocity;
     public float acceleration = 1;
-    float maxSpeed = 3f;
 
     private void Update()
     {

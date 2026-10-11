@@ -29,6 +29,9 @@ public class Player : MonoBehaviour
 
     bool decelerate;
 
+    public int radPointNum;
+    public float radarRadius;
+
 
     public List<Transform> asteroids;
 
@@ -65,6 +68,8 @@ public class Player : MonoBehaviour
         InClassPlayerMovement();
 
         SpawningBombs();
+
+        EnemyRadar(radarRadius, radPointNum);
         
 
         for(int i=0;i<asteroids.Count;i++){
@@ -219,35 +224,36 @@ public class Player : MonoBehaviour
         {
 			velocity += Time.deltaTime * acceleration * Vector3.right;
 		}
-
+		#region Commented Out
 		//if (!Keyboard.current.upArrowKey.isPressed&&velocity.x>0)     -----------------------------------------------------------
 		//{
-  //          velocity -= Time.deltaTime * acceleration * Vector3.up;
+		//          velocity -= Time.deltaTime * acceleration * Vector3.up;
 		//}
 		//if (!Keyboard.current.downArrowKey.isPressed&&velocity.x<0)
 		//{
-  //          velocity -= Time.deltaTime * acceleration * Vector3.down;
+		//          velocity -= Time.deltaTime * acceleration * Vector3.down;
 		//}
 		//if (!Keyboard.current.leftArrowKey.isPressed&&velocity.y<0)
 		//{
-  //          velocity -= Time.deltaTime * acceleration * Vector3.left;
+		//          velocity -= Time.deltaTime * acceleration * Vector3.left;
 		//}
 		//if (!Keyboard.current.rightArrowKey.isPressed&&velocity.y>0)
 		//{
-  //          velocity -= Time.deltaTime * acceleration * Vector3.down;
+		//          velocity -= Time.deltaTime * acceleration * Vector3.down;
 		//}
 
-        //The issue with this is that most of these are always applicable and so they're always messing with the velocity
-        //I'm pretty sure I need to use the .context function ---------------------------------------------------------------------
+		//The issue with this is that most of these are always applicable and so they're always messing with the velocity
+		//I'm pretty sure I need to use the .context function ---------------------------------------------------------------------
 
-  //      if(decelerate){                               ____________________________________________
-  //          slowPlayer();
-  //      }
-  //                                                    Unfished code that ruins everything somehow
+		//      if(decelerate){                               ____________________________________________
+		//          slowPlayer();
+		//      }
+		//                                                    Unfished code that ruins everything somehow
 		//if (velocity.magnitude>maxSpeed){
-  //          velocity = maxSpeed*velocity.normalized;  --------------------------------------------
-  //      }
-        velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
+		//          velocity = maxSpeed*velocity.normalized;  --------------------------------------------
+		//      }
+        #endregion
+		velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
 
         transform.position += Time.deltaTime*velocity;
     }
@@ -277,4 +283,40 @@ public class Player : MonoBehaviour
 	}
 
 	#endregion
+
+    public void EnemyRadar(float radius, int circlePoints){
+        Vector3[] radarPoints = new Vector3[circlePoints];
+        float pointDistance = 360 / circlePoints;
+        float currentAngle=0;
+        Color radarColour;
+
+
+        for(int i=0;i<radarPoints.Length;i++){
+            currentAngle += pointDistance;
+            radarPoints[i] = new Vector3(transform.position.x+(radius*Mathf.Sin(currentAngle *Mathf.Deg2Rad)), transform.position.y+(radius*Mathf.Cos(currentAngle *Mathf.Deg2Rad)), 0);
+        }
+
+
+        if(Vector2.Distance(enemyTransform.position, transform.position)<=radius){
+            radarColour = Color.red;
+        }
+        else{
+            radarColour = Color.green;
+        }
+
+
+        for (int i = 0; i < radarPoints.Length; i++)
+        {
+            
+            if (i == radarPoints.Length - 1)
+            {
+                Debug.DrawLine(radarPoints[i], radarPoints[0], radarColour);
+            }
+            else{
+				Debug.DrawLine(radarPoints[i], radarPoints[i + 1], radarColour);
+			}
+        }
+    }
+
+
 }
