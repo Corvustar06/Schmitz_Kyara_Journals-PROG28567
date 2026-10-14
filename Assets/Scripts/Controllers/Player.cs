@@ -20,11 +20,16 @@ public class Player : MonoBehaviour
     public Transform warpPosition;
     public float warpRatio;
 
-    public float maxSpeed=3f;
+    public float maxSpeed=1f;
     public float accelerationTime = 1f;
+    public float decelerationTime = 1f;
 
     private float acceleration;
+    private float deceleration;
+
     private Vector3 velocity = Vector3.zero;
+
+    public float angularSpeed = 90f;
 
 
     public int radPointNum;
@@ -39,15 +44,10 @@ public class Player : MonoBehaviour
     public Vector3 playerMovementDirection;
 
     public bool[] inRange;
-    //void Start(){
-    //    inRange = new bool[asteroids.Count];
-    //    for(int i=0; i<asteroids.Count;i++){
-    //        inRange[i] = false;
-    //    }
-    //}
 
     void Start(){
         acceleration = maxSpeed / accelerationTime; //a = delta v / delta t
+        deceleration = maxSpeed / decelerationTime;
     }
     
     // Update is called once per frame
@@ -71,6 +71,7 @@ public class Player : MonoBehaviour
 
         //PlayerMovement();
         InClassPlayerMovement();
+        PlayerRotation();
 
         SpawningBombs();
 
@@ -179,28 +180,30 @@ public class Player : MonoBehaviour
 
 	#region Movement
 	public void PlayerMovement(){
-        if(Keyboard.current.upArrowKey.isPressed&&Keyboard.current.downArrowKey.isPressed){
+        Vector3 playerInput = Vector3.zero;
+        Keyboard current = Keyboard.current;
+        if(current.upArrowKey.isPressed&&current.downArrowKey.isPressed){
             playerMovementDirection.y = 0;
         }
-        else if(Keyboard.current.upArrowKey.isPressed){
+        else if(current.upArrowKey.isPressed){
             playerMovementDirection.y = maxSpeed;
         }
-        else if(Keyboard.current.downArrowKey.isPressed){
+        else if(current.downArrowKey.isPressed){
             playerMovementDirection.y = -maxSpeed;
         }
         else{
         playerMovementDirection.y = 0;
         }
 
-        if (Keyboard.current.leftArrowKey.isPressed && Keyboard.current.rightArrowKey.isPressed)
+        if (current.leftArrowKey.isPressed && current.rightArrowKey.isPressed)
         {
             playerMovementDirection.x = 0;
         }
-        else if (Keyboard.current.leftArrowKey.isPressed)
+        else if (current.leftArrowKey.isPressed)
         {
             playerMovementDirection.x = -maxSpeed;
         }
-        else if (Keyboard.current.rightArrowKey.isPressed)
+        else if (current.rightArrowKey.isPressed)
         {
             playerMovementDirection.x = maxSpeed;
         }
@@ -213,22 +216,47 @@ public class Player : MonoBehaviour
 
     public void InClassPlayerMovement()
     {
-        if (Keyboard.current.upArrowKey.isPressed)
+        Vector3 playerInput = Vector3.zero;
+        Keyboard current = Keyboard.current;
+        if (current.upArrowKey.isPressed||current.wKey.isPressed)
         {
-            velocity += Time.deltaTime*acceleration* Vector3.up;
+            //velocity += Time.deltaTime*acceleration* Vector3.up;
+            playerInput += Vector3.up;
         }
-        if (Keyboard.current.downArrowKey.isPressed)
+        if (current.downArrowKey.isPressed||current.sKey.isPressed)
         {
-			velocity += Time.deltaTime * acceleration * Vector3.down;
+			//velocity += Time.deltaTime * acceleration * Vector3.down;
+            playerInput += Vector3.down;
 		}
-        if (Keyboard.current.leftArrowKey.isPressed)
+        if (current.leftArrowKey.isPressed||current.aKey.isPressed)
         {
-			velocity += Time.deltaTime * acceleration * Vector3.left;
+			//velocity += Time.deltaTime * acceleration * Vector3.left;
+            playerInput += Vector3.left;
 		}
-        if (Keyboard.current.rightArrowKey.isPressed)
+        if (current.rightArrowKey.isPressed||current.dKey.isPressed)
         {
-			velocity += Time.deltaTime * acceleration * Vector3.right;
+			//velocity += Time.deltaTime * acceleration * Vector3.right;
+            playerInput += Vector3.right;
 		}
+
+
+        if(playerInput.sqrMagnitude > 0){ //some input detected
+            velocity += acceleration * Time.deltaTime * playerInput.normalized;//accelerate relative to input
+
+            if(velocity.sqrMagnitude> maxSpeed* maxSpeed){ //going too fast
+                velocity = Vector3.ClampMagnitude(velocity, maxSpeed); // enforce the speed limit
+            }
+        }
+        else{// no input detected
+            float deltaVelocity = deceleration * Time.deltaTime; // deceleration this frame
+            if(velocity.magnitude>deltaVelocity){ // if we still need to slow down
+                velocity -= deltaVelocity * velocity.normalized; //decelerate
+            }
+            else{ //close enough to stop
+                velocity = Vector3.zero;// complete stop
+            }
+        }
+
 		#region Commented Out
 		//if (!Keyboard.current.upArrowKey.isPressed&&velocity.x>0)     -----------------------------------------------------------
 		//{
@@ -258,9 +286,34 @@ public class Player : MonoBehaviour
 		//          velocity = maxSpeed*velocity.normalized;  --------------------------------------------
 		//      }
         #endregion
-		velocity = Vector3.ClampMagnitude(velocity, maxSpeed);
+		
 
-        transform.position += Time.deltaTime*velocity;
+        transform.position += Time.deltaTime*velocity; // move relative to velocity
+    }
+
+    public void PlayerRotation(){
+        if (velocity.sqrMagnitude == 0) return; //not moving, do nothing
+
+        float deltaAngle = ComputeShortestAngle(transform.up, velocity);
+
+        if (deltaAngle == 0) return; // locked-on, do nothing
+
+        float rotationDirection = Mathf.Sign(deltaAngle); //sign function returns either +1 or -1
+        float rotationStep = angularSpeed * Time.deltaTime;
+
+        if(rotationStep< Mathf.Abs(deltaAngle)){ // do we still need to rotate --------- Abs makes it ignore the - sign
+            transform.Rotate(0, 0, rotationStep * rotationDirection); //rotate relative to direction
+        }
+        else{ // close enough to locked-on
+            transform.Rotate(0, 0, deltaAngle); //lock-on
+        }
+    }
+
+    private float ComputeShortestAngle(Vector3 a, Vector3 b){
+        float angleA = Mathf.Atan2(a.y, a.x) * Mathf.Rad2Deg;
+        float angleB = Mathf.Atan2(b.y, b.x) * Mathf.Rad2Deg;
+
+        return Mathf.DeltaAngle(angleA, angleB);
     }
 
     public void slowPlayer(){
