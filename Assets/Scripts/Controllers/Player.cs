@@ -13,6 +13,7 @@ public class Player : MonoBehaviour
     public GameObject powerupPrefab;
     public List<Transform> asteroidTransforms;
 
+
     public Vector2 testVector;
     public int numberOfBombs = 5;
 
@@ -45,6 +46,7 @@ public class Player : MonoBehaviour
 
     public List<Transform> asteroids;
     public List<GameObject> orbitingBombs;
+    public List<Vector3> bombPositions;
 
     public Vector3 playerMovementDirection;
 
@@ -54,6 +56,8 @@ public class Player : MonoBehaviour
     public bool bombsOrbiting = false;
 
     public float timer;
+    public float currentTime;
+    public float previousTime;
 
     void Start(){
         acceleration = maxSpeed / accelerationTime; //a = delta v / delta t
@@ -154,13 +158,18 @@ public class Player : MonoBehaviour
     public void spawnOrbitingBombs(int bombNum){
         if(bombsOrbiting){
 
-
+           for(int i=0;i<orbitingBombs.Count;i++){
+                Bomb currentBomb = orbitingBombs[i].GetComponent<Bomb>();
+                currentBomb.velocity = new Vector3((orbitingBombs[i].transform.position.x - bombPositions[i].x) / (currentTime - previousTime), (orbitingBombs[i].transform.position.y - bombPositions[i].y) / (currentTime - previousTime),0);
+           }
             bombsOrbiting = false;
         }
         else{
             bombsOrbiting = true;
             timer = 0;
-            orbitingBombs = new List<GameObject>{ };
+            currentTime = 0;
+            orbitingBombs = new List<GameObject>();
+            bombPositions = new List<Vector3>();
         }
     }
     public void orbitBombs(float radius, int bombNum){
@@ -172,6 +181,7 @@ public class Player : MonoBehaviour
             if(orbitingBombs.Count<bombNum){
 				spawnedBomb = Instantiate(bombPrefab, bombSpawnPosition, Quaternion.identity);
 				orbitingBombs.Add(spawnedBomb);
+                bombPositions.Add(bombSpawnPosition);
 				timer = timeBetweenBombs;
 			}
             else{
@@ -180,6 +190,8 @@ public class Player : MonoBehaviour
         }
 
         timer -= Time.deltaTime;
+        previousTime = currentTime;
+        currentTime += Time.deltaTime;
 
         for(int i=0;i<orbitingBombs.Count;i++){
             Bomb currentBomb = orbitingBombs[i].GetComponent<Bomb>();
@@ -189,6 +201,7 @@ public class Player : MonoBehaviour
 
             currentBomb.currentAngle += bombOrbitSpeed * Time.deltaTime;
 
+			bombPositions[i] = orbitingBombs[i].transform.position;
 			orbitingBombs[i].transform.position = new Vector3(transform.position.x + (radius * Mathf.Sin(currentBomb.currentAngle * Mathf.Deg2Rad)), transform.position.y + (radius * Mathf.Cos(currentBomb.currentAngle * Mathf.Deg2Rad)), 0);
 
 		}
