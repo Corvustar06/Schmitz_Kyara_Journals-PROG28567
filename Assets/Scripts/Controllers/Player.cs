@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Processors;
+using static UnityEngine.GraphicsBuffer;
 
 public class Player : MonoBehaviour
 {
@@ -13,7 +14,7 @@ public class Player : MonoBehaviour
     public List<Transform> asteroidTransforms;
 
     public Vector2 testVector;
-    int numberOfBombs = 5;
+    public int numberOfBombs = 5;
 
     float bombSpacing = 1f;
 
@@ -38,14 +39,21 @@ public class Player : MonoBehaviour
     public float powerupRadius;
     public int powerupNum;
 
+    public float bombRadius;
+    public float bombOrbitSpeed;
+
 
     public List<Transform> asteroids;
+    public List<GameObject> orbitingBombs;
 
     public Vector3 playerMovementDirection;
 
     public bool[] inRange;
 
     public bool isBoosted = false;
+    public bool bombsOrbiting = false;
+
+    public float timer;
 
     void Start(){
         acceleration = maxSpeed / accelerationTime; //a = delta v / delta t
@@ -143,6 +151,50 @@ public class Player : MonoBehaviour
 		//aside from those simple issues, I got through this task without much challenge.
 	}
 
+    public void spawnOrbitingBombs(int bombNum){
+        if(bombsOrbiting){
+
+
+            bombsOrbiting = false;
+        }
+        else{
+            bombsOrbiting = true;
+            timer = 0;
+            orbitingBombs = new List<GameObject>{ };
+        }
+    }
+    public void orbitBombs(float radius, int bombNum){
+		float cycleTime = 360 / bombOrbitSpeed;
+		float timeBetweenBombs = cycleTime / bombNum;
+        Vector3 bombSpawnPosition = new Vector3(0, radius, 0);
+        GameObject spawnedBomb;
+        if(timer<=0){
+            if(orbitingBombs.Count<bombNum){
+				spawnedBomb = Instantiate(bombPrefab, bombSpawnPosition, Quaternion.identity);
+				orbitingBombs.Add(spawnedBomb);
+				timer = timeBetweenBombs;
+			}
+            else{
+                timer = 0;
+            }
+        }
+
+        timer -= Time.deltaTime;
+
+        for(int i=0;i<orbitingBombs.Count;i++){
+            Bomb currentBomb = orbitingBombs[i].GetComponent<Bomb>();
+            //This is where I struggled
+            //I was trying to use ATan2 to find the angle of each bomb in each frame of each loop, and I didn't understand the math
+            //Instead, I just gave each bomb prefab it's own angle that they track themselves
+
+            currentBomb.currentAngle += bombOrbitSpeed * Time.deltaTime;
+
+			orbitingBombs[i].transform.position = new Vector3(transform.position.x + (radius * Mathf.Sin(currentBomb.currentAngle * Mathf.Deg2Rad)), transform.position.y + (radius * Mathf.Cos(currentBomb.currentAngle * Mathf.Deg2Rad)), 0);
+
+		}
+        
+	}
+
     public void SpawningBombs(){
 		if (Keyboard.current.tKey.wasPressedThisFrame)
 		{
@@ -157,6 +209,13 @@ public class Player : MonoBehaviour
 		{
 			SpawnBombAtOffSet(new Vector3(0, 1, 0));
 		}
+        if(Keyboard.current.oKey.wasPressedThisFrame){
+            spawnOrbitingBombs(numberOfBombs);
+        }
+
+        if(bombsOrbiting){
+            orbitBombs(bombRadius, numberOfBombs);
+        }
 
 	}
 
