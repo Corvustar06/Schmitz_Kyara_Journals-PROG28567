@@ -1114,6 +1114,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1273894435109820, guid: b262926197932c945b68169dd6fd6c5c, type: 3}
     - target: {fileID: 6890330259706833056, guid: abc125f00ae369940b2c5c0275186637, type: 3}
+      propertyPath: bombRadius
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6890330259706833056, guid: abc125f00ae369940b2c5c0275186637, type: 3}
       propertyPath: powerupNum
       value: 5
       objectReference: {fileID: 0}
@@ -1130,12 +1134,20 @@ PrefabInstance:
       value: 270
       objectReference: {fileID: 0}
     - target: {fileID: 6890330259706833056, guid: abc125f00ae369940b2c5c0275186637, type: 3}
+      propertyPath: numberOfBombs
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 6890330259706833056, guid: abc125f00ae369940b2c5c0275186637, type: 3}
       propertyPath: powerupPrefab
       value: 
       objectReference: {fileID: 1567431237259788, guid: 03444c0c59102ba46bb1a8b5a1b0a810, type: 3}
     - target: {fileID: 6890330259706833056, guid: abc125f00ae369940b2c5c0275186637, type: 3}
       propertyPath: powerupRadius
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6890330259706833056, guid: abc125f00ae369940b2c5c0275186637, type: 3}
+      propertyPath: bombOrbitSpeed
+      value: 45
       objectReference: {fileID: 0}
     - target: {fileID: 6890330259706833056, guid: abc125f00ae369940b2c5c0275186637, type: 3}
       propertyPath: enemyTransform
