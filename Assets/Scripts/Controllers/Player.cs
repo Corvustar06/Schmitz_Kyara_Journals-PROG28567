@@ -45,6 +45,8 @@ public class Player : MonoBehaviour
 
     public bool[] inRange;
 
+    public bool isBoosted = false;
+
     void Start(){
         acceleration = maxSpeed / accelerationTime; //a = delta v / delta t
         deceleration = maxSpeed / decelerationTime;
@@ -60,11 +62,15 @@ public class Player : MonoBehaviour
 
         
         if(Keyboard.current.wKey.wasPressedThisFrame){
-            WarpPlayer(warpPosition, warpRatio);
+            WarpPlayer(enemyTransform, warpRatio);
         }
 
         if(Keyboard.current.pKey.wasPressedThisFrame){
             SpawnPowerups(powerupRadius, powerupNum);
+        }
+
+        if(Keyboard.current.fKey.wasPressedThisFrame){
+            boostPlayer(enemyTransform);
         }
 
         //DetectAsteroids(maxRange, asteroids);
@@ -244,7 +250,21 @@ public class Player : MonoBehaviour
             velocity += acceleration * Time.deltaTime * playerInput.normalized;//accelerate relative to input
 
             if(velocity.sqrMagnitude> maxSpeed* maxSpeed){ //going too fast
-                velocity = Vector3.ClampMagnitude(velocity, maxSpeed); // enforce the speed limit
+                if(isBoosted){ // deceleration for if it was just boosted
+					float deltaVelocity = deceleration * Time.deltaTime; // deceleration this frame
+					if (velocity.magnitude > maxSpeed)
+					{ // if we still need to slow down
+						velocity -= deltaVelocity * velocity.normalized; //decelerate
+					}
+					else
+					{ //close enough to stop
+                        isBoosted = false;
+					}
+				}
+                else{
+					velocity = Vector3.ClampMagnitude(velocity, maxSpeed); // enforce the speed limit
+				}
+                
             }
         }
         else{// no input detected
@@ -340,6 +360,15 @@ public class Player : MonoBehaviour
 
 	}
 
+    public void boostPlayer(Transform target){
+
+        isBoosted = true;
+
+        Vector2 enemyDirection = new Vector2((target.position.x - transform.position.x), (target.position.y - transform.position.y));
+
+        velocity = enemyDirection.normalized * (maxSpeed * 2.5f);
+    }
+
 	#endregion
 
     public void EnemyRadar(float radius, int circlePoints){
@@ -392,5 +421,7 @@ public class Player : MonoBehaviour
 
 
 	}
+
+
 
 }
