@@ -8,7 +8,9 @@ using static UnityEngine.GraphicsBuffer;
 
 public class Player : MonoBehaviour
 {
-    public Transform enemyTransform;
+
+	#region Variables
+	public Transform enemyTransform;
     public GameObject bombPrefab;
     public GameObject powerupPrefab;
     public List<Transform> asteroidTransforms;
@@ -59,7 +61,17 @@ public class Player : MonoBehaviour
     public float currentTime;
     public float previousTime;
 
-    void Start(){
+
+    bool shieldSpawned = false;
+    public int shieldPointNum;
+    float shieldDegreeDistance;
+    public float shieldRadius;
+    List<float> shieldPointAngles;
+    List<Vector2> shieldPoints;
+    public float shieldSpeed;
+	#endregion
+
+	void Start(){
         acceleration = maxSpeed / accelerationTime; //a = delta v / delta t
         deceleration = maxSpeed / decelerationTime;
     }
@@ -84,6 +96,17 @@ public class Player : MonoBehaviour
         if(Keyboard.current.fKey.wasPressedThisFrame){
             boostPlayer(enemyTransform);
         }
+        if(Keyboard.current.qKey.wasPressedThisFrame){
+            shieldSpawned = true;
+			shieldPoints = new List<Vector2>();
+            shieldPointAngles = new List<float>();
+			shieldDegreeDistance = (360 / 3) / shieldPointNum;
+			for (int i = 0; i < shieldPointNum; i++)
+			{
+				shieldPoints.Add(new Vector2(transform.position.x + (shieldRadius * Mathf.Sin((shieldDegreeDistance * i) * Mathf.Deg2Rad)), transform.position.y + (shieldRadius * Mathf.Cos((shieldDegreeDistance * i) * Mathf.Deg2Rad))));
+                shieldPointAngles.Add(shieldDegreeDistance * i);
+			}
+		}
 
         //DetectAsteroids(maxRange, asteroids);
 
@@ -94,6 +117,11 @@ public class Player : MonoBehaviour
         SpawningBombs();
 
         EnemyRadar(radarRadius, radPointNum);
+
+        if (shieldSpawned)
+        {
+            spawnShield();
+        }
         
 
         for(int i=0;i<asteroids.Count;i++){
@@ -233,28 +261,6 @@ public class Player : MonoBehaviour
 	}
 
 	#endregion
-
-
-	public Vector2 NormalizeVector(Vector2 abnormalVector){
-        float magnitude = Mathf.Sqrt(Mathf.Pow(abnormalVector.x, 2) + Mathf.Pow(abnormalVector.y, 2));
-        return(new Vector2(abnormalVector.x/magnitude, abnormalVector.y/magnitude));
-    }
-    
-    public void DetectAsteroids(float inMaxRange, List<Transform> inAsteroids){
-        float magnitude;
-        for(int i=0; i<inAsteroids.Count;i++){
-            magnitude = (transform.position + inAsteroids[i].position).magnitude;
-            if (magnitude < inMaxRange)
-            {
-                inRange[i] = true;
-            }
-            else{
-                inRange[i] = false;
-            }
-        }
-        //total mag of 2.5
-    }
-
 
 	#region Movement
 	public void PlayerMovement(){
@@ -491,6 +497,42 @@ public class Player : MonoBehaviour
             powerUp = Instantiate(powerupPrefab, powerups[i], transform.rotation);
 		}
 
+
+	}
+
+	public Vector2 NormalizeVector(Vector2 abnormalVector)
+	{
+		float magnitude = Mathf.Sqrt(Mathf.Pow(abnormalVector.x, 2) + Mathf.Pow(abnormalVector.y, 2));
+		return (new Vector2(abnormalVector.x / magnitude, abnormalVector.y / magnitude));
+	}
+
+	public void DetectAsteroids(float inMaxRange, List<Transform> inAsteroids)
+	{
+		float magnitude;
+		for (int i = 0; i < inAsteroids.Count; i++)
+		{
+			magnitude = (transform.position + inAsteroids[i].position).magnitude;
+			if (magnitude < inMaxRange)
+			{
+				inRange[i] = true;
+			}
+			else
+			{
+				inRange[i] = false;
+			}
+		}
+		//total mag of 2.5
+	}
+
+    public void spawnShield(){
+        for(int i=0;i<shieldPoints.Count;i++){
+            shieldPointAngles[i] += shieldSpeed * Time.deltaTime;
+            shieldPoints[i] = new Vector2(transform.position.x + (shieldRadius * Mathf.Sin((shieldPointAngles[i]) * Mathf.Deg2Rad)), transform.position.y + (shieldRadius * Mathf.Cos((shieldPointAngles[i]) * Mathf.Deg2Rad)));
+			if (i != shieldPoints.Count - 1)
+			{
+				Debug.DrawLine(shieldPoints[i], shieldPoints[i + 1], Color.cyan);
+			}
+		}
 
 	}
 
