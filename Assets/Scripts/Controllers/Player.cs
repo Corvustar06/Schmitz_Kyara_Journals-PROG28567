@@ -69,6 +69,7 @@ public class Player : MonoBehaviour
     List<float> shieldPointAngles;
     List<Vector2> shieldPoints;
     public float shieldSpeed;
+    public int loops;
 	#endregion
 
 	void Start(){
@@ -525,6 +526,7 @@ public class Player : MonoBehaviour
 	}
 
     public void spawnShield(){
+
         for(int i=0;i<shieldPoints.Count;i++){
             shieldPointAngles[i] += shieldSpeed * Time.deltaTime;
             shieldPoints[i] = new Vector2(transform.position.x + (shieldRadius * Mathf.Sin((shieldPointAngles[i]) * Mathf.Deg2Rad)), transform.position.y + (shieldRadius * Mathf.Cos((shieldPointAngles[i]) * Mathf.Deg2Rad)));
@@ -533,6 +535,25 @@ public class Player : MonoBehaviour
 				Debug.DrawLine(shieldPoints[i], shieldPoints[i + 1], Color.cyan);
 			}
 		}
+
+        if(loops==0){
+            if(shieldPointAngles[0]>=360){
+                loops = 1;
+            }
+        }
+        else if(loops==1){
+            if(shieldPointAngles[0]>=720){
+                loops = 2;
+            }
+        }
+        else if(loops==2){
+            if(shieldPointAngles[0]>=1080){
+                loops = 3;
+            }
+        }
+        else if(loops==3){
+            shieldSpawned = false;
+        }
 
 	}
 
