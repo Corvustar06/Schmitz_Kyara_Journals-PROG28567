@@ -98,14 +98,19 @@ public class Player : MonoBehaviour
             boostPlayer(enemyTransform);
         }
         if(Keyboard.current.qKey.wasPressedThisFrame){
-            shieldSpawned = true;
-			shieldPoints = new List<Vector2>();
+            shieldSpawned = true;//enables the drawing of the shield
+
+			shieldPoints = new List<Vector2>();//resets the lists
             shieldPointAngles = new List<float>();
-			shieldDegreeDistance = (360 / 3) / shieldPointNum;
+
+			shieldDegreeDistance = (360 / 3) / shieldPointNum; //even space out the points across 1/3 of the circle
 			for (int i = 0; i < shieldPointNum; i++)
 			{
-				shieldPoints.Add(new Vector2(transform.position.x + (shieldRadius * Mathf.Sin((shieldDegreeDistance * i) * Mathf.Deg2Rad)), transform.position.y + (shieldRadius * Mathf.Cos((shieldDegreeDistance * i) * Mathf.Deg2Rad))));
-                shieldPointAngles.Add(shieldDegreeDistance * i);
+				//place each point in the shield in it's appropriate starting position
+				shieldPoints.Add(new Vector2(transform.position.x + (shieldRadius * Mathf.Sin((shieldDegreeDistance * i) * Mathf.Deg2Rad)), 
+                transform.position.y + (shieldRadius * Mathf.Cos((shieldDegreeDistance * i) * Mathf.Deg2Rad))));
+
+                shieldPointAngles.Add(shieldDegreeDistance * i);//put each point slightly further around the circle initially
 			}
 		}
 
@@ -121,7 +126,7 @@ public class Player : MonoBehaviour
 
         if (shieldSpawned)
         {
-            spawnShield();
+            spawnShield(); //triggers movement and drawing of the shield
         }
         
 
@@ -185,53 +190,59 @@ public class Player : MonoBehaviour
 	}
 
     public void spawnOrbitingBombs(int bombNum){
-        if(bombsOrbiting){
+        if(bombsOrbiting){ //when the button is pressed, is it already active?
 
-           for(int i=0;i<orbitingBombs.Count;i++){
-                Bomb currentBomb = orbitingBombs[i].GetComponent<Bomb>();
-                currentBomb.velocity = new Vector3((orbitingBombs[i].transform.position.x - bombPositions[i].x) / (currentTime - previousTime), (orbitingBombs[i].transform.position.y - bombPositions[i].y) / (currentTime - previousTime),0);
+           for(int i=0;i<orbitingBombs.Count;i++){ //for every bomb that's been spawned
+                Bomb currentBomb = orbitingBombs[i].GetComponent<Bomb>(); //take their current velocity (0)
+                //and change it to match whatever the instantaneous velocity was in the previous frame
+                currentBomb.velocity = new Vector3((orbitingBombs[i].transform.position.x - bombPositions[i].x) / (currentTime - previousTime), 
+                (orbitingBombs[i].transform.position.y - bombPositions[i].y) / (currentTime - previousTime),0);
+                //sending the bombs flying away
            }
-            bombsOrbiting = false;
+            bombsOrbiting = false; //the bombs are no longer active
         }
-        else{
-            bombsOrbiting = true;
-            timer = 0;
+        else{ //if it's not active
+            bombsOrbiting = true; //now it is
+            timer = 0; //reset the timers
             currentTime = 0;
-            orbitingBombs = new List<GameObject>();
+            orbitingBombs = new List<GameObject>();//reset the lists
             bombPositions = new List<Vector3>();
         }
     }
     public void orbitBombs(float radius, int bombNum){
-		float cycleTime = 360 / bombOrbitSpeed;
-		float timeBetweenBombs = cycleTime / bombNum;
-        Vector3 bombSpawnPosition = new Vector3(0, radius, 0);
-        GameObject spawnedBomb;
-        if(timer<=0){
-            if(orbitingBombs.Count<bombNum){
-				spawnedBomb = Instantiate(bombPrefab, bombSpawnPosition, Quaternion.identity);
-				orbitingBombs.Add(spawnedBomb);
-                bombPositions.Add(bombSpawnPosition);
-				timer = timeBetweenBombs;
+		float cycleTime = 360 / bombOrbitSpeed; //how much time it would take for a bomb to cycle around the player
+		float timeBetweenBombs = cycleTime / bombNum; //spacing the bombs evenly apart based on the speed and number of bombs
+        Vector3 bombSpawnPosition = new Vector3(0, radius, 0); //The starting position for every bomb spawned
+        GameObject spawnedBomb; //holds a temporary gameobject for the spawning bomb
+        if(timer<=0){//if the timer runs out
+            if(orbitingBombs.Count<bombNum){//so long as not all of the bombs have been spawned
+				spawnedBomb = Instantiate(bombPrefab, bombSpawnPosition, Quaternion.identity); //spawn a new bomb
+				orbitingBombs.Add(spawnedBomb);//add this bomb to the list
+                bombPositions.Add(bombSpawnPosition); //add this bombs position to a list
+				timer = timeBetweenBombs; //reset the timer
 			}
-            else{
-                timer = 0;
+            else{ //otherwise
+                timer = 0; //keep the timer at 0
             }
         }
 
-        timer -= Time.deltaTime;
-        previousTime = currentTime;
-        currentTime += Time.deltaTime;
+        timer -= Time.deltaTime; //move the timer down
 
-        for(int i=0;i<orbitingBombs.Count;i++){
-            Bomb currentBomb = orbitingBombs[i].GetComponent<Bomb>();
+        previousTime = currentTime; //track the current time and the time in the last frame
+        currentTime += Time.deltaTime; //this is for when the bombs stop rotating
+
+        for(int i=0;i<orbitingBombs.Count;i++){ //for every bomb in the list
+            Bomb currentBomb = orbitingBombs[i].GetComponent<Bomb>(); //find the bomb script attatched to each bomb
             //This is where I struggled
             //I was trying to use ATan2 to find the angle of each bomb in each frame of each loop, and I didn't understand the math
             //Instead, I just gave each bomb prefab it's own angle that they track themselves
 
-            currentBomb.currentAngle += bombOrbitSpeed * Time.deltaTime;
+            currentBomb.currentAngle += bombOrbitSpeed * Time.deltaTime; //move its current angle
 
-			bombPositions[i] = orbitingBombs[i].transform.position;
-			orbitingBombs[i].transform.position = new Vector3(transform.position.x + (radius * Mathf.Sin(currentBomb.currentAngle * Mathf.Deg2Rad)), transform.position.y + (radius * Mathf.Cos(currentBomb.currentAngle * Mathf.Deg2Rad)), 0);
+			bombPositions[i] = orbitingBombs[i].transform.position; //record what the bomb's position was in the previous frame
+            //move the bomb
+			orbitingBombs[i].transform.position = new Vector3(transform.position.x + (radius * Mathf.Sin(currentBomb.currentAngle * Mathf.Deg2Rad)), 
+            transform.position.y + (radius * Mathf.Cos(currentBomb.currentAngle * Mathf.Deg2Rad)), 0);
 
 		}
         
@@ -255,7 +266,7 @@ public class Player : MonoBehaviour
             spawnOrbitingBombs(numberOfBombs);
         }
 
-        if(bombsOrbiting){
+        if(bombsOrbiting){ //if it's active
             orbitBombs(bombRadius, numberOfBombs);
         }
 
@@ -326,17 +337,15 @@ public class Player : MonoBehaviour
 
 
         if(playerInput.sqrMagnitude > 0){ //some input detected
-            velocity += acceleration * Time.deltaTime * playerInput.normalized;//accelerate relative to input
+            
 
             if(velocity.sqrMagnitude> maxSpeed* maxSpeed){ //going too fast
                 if(isBoosted){ // deceleration for if it was just boosted
 					float deltaVelocity = deceleration * Time.deltaTime; // deceleration this frame
-					if (velocity.magnitude > maxSpeed)
-					{ // if we still need to slow down
+					if (velocity.magnitude > maxSpeed){ // if we still need to slow down
 						velocity -= deltaVelocity * velocity.normalized; //decelerate
 					}
-					else
-					{ //close enough to stop
+					else{ //close enough to stop
                         isBoosted = false;
 					}
 				}
@@ -345,6 +354,9 @@ public class Player : MonoBehaviour
 				}
                 
             }
+            else{ //no boost, accelerate like normal
+				velocity += acceleration * Time.deltaTime * playerInput.normalized;//accelerate relative to input
+			}
         }
         else{// no input detected
             float deltaVelocity = deceleration * Time.deltaTime; // deceleration this frame
@@ -415,10 +427,6 @@ public class Player : MonoBehaviour
         return Mathf.DeltaAngle(angleA, angleB);
     }
 
-    public void slowPlayer(){
-        
-    }
-
 	public void WarpPlayer(Transform target, float ratio)
 	{
 		if (ratio > 1)
@@ -441,11 +449,11 @@ public class Player : MonoBehaviour
 
     public void boostPlayer(Transform target){
 
-        isBoosted = true;
+        isBoosted = true;//applies boost to player's movement
 
-        Vector2 enemyDirection = new Vector2((target.position.x - transform.position.x), (target.position.y - transform.position.y));
+        Vector2 enemyDirection = new Vector2((target.position.x - transform.position.x), (target.position.y - transform.position.y)); //finds the enemy's direction relative to the player's position
 
-        velocity = enemyDirection.normalized * (maxSpeed * 2.5f);
+        velocity = enemyDirection.normalized * (maxSpeed * 2.5f); //sends to player towards the enemy at 2.5 times the max speed
     }
 
 	#endregion
@@ -528,11 +536,13 @@ public class Player : MonoBehaviour
     public void spawnShield(){
 
         for(int i=0;i<shieldPoints.Count;i++){
-            shieldPointAngles[i] += shieldSpeed * Time.deltaTime;
-            shieldPoints[i] = new Vector2(transform.position.x + (shieldRadius * Mathf.Sin((shieldPointAngles[i]) * Mathf.Deg2Rad)), transform.position.y + (shieldRadius * Mathf.Cos((shieldPointAngles[i]) * Mathf.Deg2Rad)));
-			if (i != shieldPoints.Count - 1)
+            shieldPointAngles[i] += shieldSpeed * Time.deltaTime; //rotate the set points of the shield to move around the player
+            shieldPoints[i] = new Vector2(transform.position.x + (shieldRadius * Mathf.Sin((shieldPointAngles[i]) * Mathf.Deg2Rad)), 
+            transform.position.y + (shieldRadius * Mathf.Cos((shieldPointAngles[i]) * Mathf.Deg2Rad))); // Move the points to reflect their new angles
+			
+            if (i != shieldPoints.Count - 1) //for all but the last point in the list
 			{
-				Debug.DrawLine(shieldPoints[i], shieldPoints[i + 1], Color.cyan);
+				Debug.DrawLine(shieldPoints[i], shieldPoints[i + 1], Color.cyan); 
 			}
 		}
 
