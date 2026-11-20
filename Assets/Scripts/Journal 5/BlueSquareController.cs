@@ -16,9 +16,9 @@ public class BlueSquareController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log((bool)Physics2D.BoxCast(transform.position, transform.localScale, 0f, Vector2.down, .1f, redBoxLay));
+        Debug.Log((bool)Physics2D.BoxCast(transform.position, transform.localScale, 0f, Vector2.down, .5f, redBoxLay));
 
 
-        Debug.Log(Physics2D.ClosestPoint(new Vector2(0.6f,-5.5f),bc2d));
+        //Debug.Log(Physics2D.ClosestPoint(new Vector2(0.6f,-5.5f),bc2d));
 	}
 }
